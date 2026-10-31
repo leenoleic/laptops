@@ -38,7 +38,7 @@ const CURRENCY = "₱";
    Row 2 = column type keyword (case doesn't matter, the word "type" is optional)
    Row 3 and below = your products
    Types: text | image | list | price | number | center | bold | hide
-   image = paste a photo URL   list = separate items with Alt+Enter (new line) or |
+   image = paste a photo URL   list = separate items with a comma, Alt+Enter (new line) or |
    price = shows ₱ and commas   hide = column is not shown but is still searchable */
 
 const SAMPLE = `Photo,Status,Brand,Model,Cash Price,SRP,CPU,RAM,SSD
@@ -67,8 +67,8 @@ let COLS=[],ROWS=[];
 function cell(type,v){
   v=(v||"").trim();
   switch(type){
-    case "image": return v?`<img src="${esc(v)}" alt="" loading="lazy">`:"";
-    case "list": return v.split(/\r?\n|\|/).map(x=>x.trim()).filter(Boolean).map(x=>`<div class="li">${esc(x)}</div>`).join("");
+    case "image": return v?`<img src="${esc(v)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:"";
+    case "list": return v.split(/\r?\n|\||,(?!\d)/).map(x=>x.trim()).filter(Boolean).map(x=>`<div class="li">${esc(x)}</div>`).join("");
     case "price": {const n=num(v);return n==null?esc(v):CURRENCY+" "+fmt(n)}
     case "number": {const n=num(v);return n==null?esc(v):fmt(n)}
     default: return esc(v);
@@ -90,7 +90,7 @@ async function init(){
   }
   const rows=parseCSV(csv);
   const titles=rows[0]||[],types=rows[1]||[];
-  COLS=titles.map((title,i)=>({i,title:title.trim(),type:((types[i]||"text").trim().toLowerCase().replace(/type$/,""))||"text"}));
+  COLS=titles.map((title,i)=>({i,title:title.trim(),type:title.trim()?(((types[i]||"text").trim().toLowerCase().replace(/type$/,""))||"text"):"hide"}));
   ROWS=rows.slice(2).filter(r=>r.some(x=>x.trim()));
   render();
 }
